@@ -1,4 +1,4 @@
-import { StyleSheet, Text, ToastAndroid, View } from "react-native"
+import { StyleSheet, Text, ToastAndroid, View, ScrollView } from "react-native"
 import { useContext, useState } from "react"
 import MpinComponent from "../../Components/MpinComponent"
 import ButtonComponent from "../../Components/ButtonComponent"
@@ -90,7 +90,7 @@ const ChangePin = () => {
           }
         })
         .catch(err => {
-          console.log("CHANGE PINNN SCREENNNN", err)
+          // console.log("CHANGE PINNN SCREENNNN", err)
           ToastAndroid.showWithGravityAndOffset(
             err.response.data,
             ToastAndroid.SHORT,
@@ -106,103 +106,220 @@ const ChangePin = () => {
   }
 
   return (
-    <>
-      <View style={{ flex: 1 }}>
-        <CustomHeader />
-        <View
-          style={{
-            flex: 4,
-            padding: 10,
-            backgroundColor: COLORS.lightScheme.onPrimary,
-            margin: 20,
-            borderRadius: 10,
-          }}>
-          <View>
-            <View style={styles.headerText}>
-              <Text style={styles.title}>CHANGE YOUR M-PIN</Text>
-            </View>
-            <View style={styles.pinContainer}>
-              <Text
-                style={{
-                  color: COLORS.lightScheme.primary,
-                  fontWeight: "bold",
-                  fontSize: 18,
-                }}>
-                Old Pin
-              </Text>
-              <MpinComponent value={passCode} handleChange={changePasscode} />
-            </View>
-            <View style={styles.pinContainer}>
-              <Text
-                style={{
-                  color: COLORS.lightScheme.primary,
-                  fontWeight: "bold",
-                  fontSize: 18,
-                }}>
-                New Pin
-              </Text>
-              <MpinComponent
-                value={newPassCode}
-                handleChange={setNewPassCode}
-              />
-            </View>
-            <View style={styles.pinContainer}>
-              <Text
-                style={{
-                  color: COLORS.lightScheme.primary,
-                  fontWeight: "bold",
-                  fontSize: 18,
-                }}>
-                Confirm Pin
-              </Text>
-              <MpinComponent
-                value={confirmNewPasscode}
-                handleChange={setConfirmNewPasscode}
-              />
-            </View>
-            <ButtonComponent
-              title={"CHANGE NOW"}
-              customStyle={{
-                margin: 10,
-                marginTop: 20,
-                marginLeft: 75,
-                width: 200,
-              }}
-              handleOnpress={handleChangePassword}
+    // <>
+    //   <View style={{ flex: 1 }}>
+    //     <CustomHeader />
+    //     <View
+    //       style={{
+    //         flex: 4,
+    //         padding: 10,
+    //         backgroundColor: COLORS.lightScheme.onPrimary,
+    //         margin: 20,
+    //         borderRadius: 10,
+    //       }}>
+    //       <View>
+    //         <View style={styles.headerText}>
+    //           <Text style={styles.title}>CHANGE YOUR M-PIN</Text>
+    //         </View>
+    //         <View style={styles.pinContainer}>
+    //           <Text
+    //             style={{
+    //               color: COLORS.lightScheme.primary,
+    //               fontWeight: "bold",
+    //               fontSize: 18,
+    //             }}>
+    //             Old Pin
+    //           </Text>
+    //           <MpinComponent value={passCode} handleChange={changePasscode} />
+    //         </View>
+    //         <View style={styles.pinContainer}>
+    //           <Text
+    //             style={{
+    //               color: COLORS.lightScheme.primary,
+    //               fontWeight: "bold",
+    //               fontSize: 18,
+    //             }}>
+    //             New Pin
+    //           </Text>
+    //           <MpinComponent
+    //             value={newPassCode}
+    //             handleChange={setNewPassCode}
+    //           />
+    //         </View>
+    //         <View style={styles.pinContainer}>
+    //           <Text
+    //             style={{
+    //               color: COLORS.lightScheme.primary,
+    //               fontWeight: "bold",
+    //               fontSize: 18,
+    //             }}>
+    //             Confirm Pin
+    //           </Text>
+    //           <MpinComponent
+    //             value={confirmNewPasscode}
+    //             handleChange={setConfirmNewPasscode}
+    //           />
+    //         </View>
+    //         <ButtonComponent
+    //           title={"CHANGE NOW"}
+    //           customStyle={{
+    //             margin: 10,
+    //             marginTop: 20,
+    //             marginLeft: 75,
+    //             width: 200,
+    //           }}
+    //           handleOnpress={handleChangePassword}
+    //         />
+    //       </View>
+    //     </View>
+    //   </View>
+    // </>
+
+    <View style={styles.root}>
+      <CustomHeader />
+
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.hero}>
+          <Text style={styles.heroSmall}>Security Settings</Text>
+          <Text style={styles.heroTitle}>Change Your M-PIN</Text>
+          <Text style={styles.heroSub}>Enter old PIN and set a new secure PIN</Text>
+        </View>
+
+        <View style={styles.card}>
+          <View style={styles.pinSection}>
+            <Text style={styles.label}>Old PIN</Text>
+            <MpinComponent value={passCode} handleChange={changePasscode} />
+          </View>
+
+          <View style={styles.pinSection}>
+            <Text style={styles.label}>New PIN</Text>
+            <MpinComponent value={newPassCode} handleChange={setNewPassCode} />
+          </View>
+
+          <View style={styles.pinSection}>
+            <Text style={styles.label}>Confirm PIN</Text>
+            <MpinComponent
+              value={confirmNewPasscode}
+              handleChange={setConfirmNewPasscode}
             />
           </View>
+
+          <ButtonComponent
+            title={"CHANGE NOW"}
+            customStyle={styles.button}
+            handleOnpress={handleChangePassword}
+          />
         </View>
-      </View>
-    </>
+      </ScrollView>
+    </View>
   )
 }
 
 export default ChangePin
 
+// const styles = StyleSheet.create({
+//   headerText: {
+//     backgroundColor: COLORS.lightScheme.primary,
+//     borderBottomLeftRadius: 12,
+//     borderBottomRightRadius: 12,
+//     flexDirection: "row",
+//     justifyContent: "center",
+//     alignItems: "center",
+//     paddingHorizontal: 20,
+//     marginBottom: 20,
+//     color: "white",
+//   },
+//   pinContainer: {
+//     display: "flex",
+//     justifyContent: "center",
+//     alignItems: "center",
+//   },
+//   title: {
+//     textAlign: "center",
+//     color: COLORS.lightScheme.onPrimary,
+//     fontSize: 20,
+//     // fontWeight:'bold',
+//     fontWeight: "900",
+//     paddingHorizontal: 15,
+//     paddingVertical: 5,
+//   },
+// })
+
 const styles = StyleSheet.create({
-  headerText: {
-    backgroundColor: COLORS.lightScheme.primary,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
+  root: {
+    flex: 1,
+    backgroundColor: "#F5F9FF",
+  },
+  container: {
+    flex: 1,
+    backgroundColor: "#F5F9FF",
+    paddingHorizontal: 12,
+    paddingTop: 10,
+  },
+  hero: {
+    backgroundColor: "#0B1F2A",
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    paddingVertical: 18,
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+    marginBottom: 12,
+  },
+  heroSmall: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.72)",
+    fontWeight: "600",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  heroTitle: {
+    marginTop: 4,
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: 0.3,
+  },
+  heroSub: {
+    marginTop: 6,
+    fontSize: 14,
+    color: "#009966",
+    fontWeight: "600",
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(217,184,92,0.12)",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
     marginBottom: 20,
-    color: "white",
   },
-  pinContainer: {
-    display: "flex",
-    justifyContent: "center",
+  pinSection: {
+    marginBottom: 18,
     alignItems: "center",
   },
-  title: {
-    textAlign: "center",
-    color: COLORS.lightScheme.onPrimary,
-    fontSize: 20,
-    // fontWeight:'bold',
-    fontWeight: "900",
-    paddingHorizontal: 15,
-    paddingVertical: 5,
+  label: {
+    color: "#000",
+    fontWeight: "800",
+    fontSize: 15,
+    marginBottom: 10,
+    letterSpacing: 0.2,
   },
-})
+  button: {
+    marginTop: 6,
+    alignSelf: "center",
+    width: "100%",
+    borderRadius: 14,
+  },
+});

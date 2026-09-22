@@ -21,13 +21,12 @@ const ButtonComponent = ({
       onPress={handleOnpress}
       style={[
         {
-          backgroundColor: disabled
-            ? COLORS.darkScheme.secondary
-            : COLORS.lightScheme.primary,
+          backgroundColor: disabled ? "#9E9E9E" : "#0B1F2A",
+          opacity: disabled ? 0.7 : 1,
         },
         { ...styles.container, ...customStyle },
       ]}>
-      <Text style={styles.text}>{title}</Text>
+      <Text style={[styles.text, { color: disabled ? "#E0E0E0" : "#FFFFFF" }]}>{title}</Text>
     </TouchableOpacity>
   )
 }
@@ -36,15 +35,15 @@ export default ButtonComponent
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: PixelRatio.roundToNearestPixel(30),
-    padding: 10,
-    elevation: 10,
+    borderRadius: PixelRatio.roundToNearestPixel(10),
+    padding: 8,
+    elevation: 8,
     // backgroundColor: colors.secondary
   },
   text: {
     color: COLORS.lightScheme.onError,
-    fontSize: PixelRatio.roundToNearestPixel(18),
-    fontWeight: "700",
+    fontSize: PixelRatio.roundToNearestPixel(15),
+    fontWeight: "500",
     textAlign: "center",
     letterSpacing: 1,
   },

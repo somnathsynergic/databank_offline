@@ -1,13 +1,20 @@
 import { REACT_APP_BASE_URL } from "../Config/config"
 
 export const address = {
-  LOGIN: `${REACT_APP_BASE_URL}/user/login`,
+  // LOGIN: `${REACT_APP_BASE_URL}/user/login`,
+  LOGIN: `${REACT_APP_BASE_URL}/offline/login`,
+  REGISTER: `${REACT_APP_BASE_URL}/offline/register_new_user`,
+  CHALLENGE: `${REACT_APP_BASE_URL}/offline/challenge`,
   NOW_DATE: `${REACT_APP_BASE_URL}/user/now_date`,
-  MY_AGENT: `${REACT_APP_BASE_URL}/user/my_agent`,
+  // MY_AGENT: `${REACT_APP_BASE_URL}/user/my_agent`,
+  MY_AGENT: `${REACT_APP_BASE_URL}/offline/my_agent`,
   COLLECTION_CHECKED: `${REACT_APP_BASE_URL}/user/collection_checked`,
   TOTAL_COLLECTION: `${REACT_APP_BASE_URL}/user/total_collection`,
   END_COLLECTION: `${REACT_APP_BASE_URL}/user/end_collection`,
-  SEARCH_ACCOUNT: `${REACT_APP_BASE_URL}/user/search_account`,
+  RECEIVE_COLLECTION: `${REACT_APP_BASE_URL}/offline/receive_collection`,
+  CHECK_OFFLINE_SYNC_STATUS: `${REACT_APP_BASE_URL}/offline/check_offline_sync_status`,
+  // SEARCH_ACCOUNT: `${REACT_APP_BASE_URL}/user/search_account`,
+  SEARCH_ACCOUNT: `${REACT_APP_BASE_URL}/offline/search_account`,
   LAST_TNX_DATE: `${REACT_APP_BASE_URL}/user/get_acc_prev_col`,
   TRANSACTION: `${REACT_APP_BASE_URL}/user/transaction`,
   CHANGE_PIN: `${REACT_APP_BASE_URL}/user/change_pin`,

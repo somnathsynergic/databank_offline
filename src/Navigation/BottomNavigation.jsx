@@ -13,20 +13,28 @@ import SettingsNavigation from "./SettingsNavigation"
 import EndWork from "../Screens/SettingsScreens/EndWork"
 import EndWorkScreen from "../Screens/EndWorkScreen/EndWorkScreen"
 import HomeNavigation from "./HomeNavigation"
+import SyncScreen from "../Screens/SyncScreen/SyncScreen"
+import { SCREEN_HEIGHT, SCREEN_WIDTH } from "react-native-normalize"
 
 const Tab = createBottomTabNavigator()
 
 const BottomNavigation = () => {
   return (
-    <>
+    <View style={{ flex: 1, backgroundColor: COLORS.lightScheme.background }}>
       <Tab.Navigator
         screenOptions={{
           tabBarStyle: {
             backgroundColor: COLORS.lightScheme.onPrimary,
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
+            borderRadius: 50,
+            marginBottom: 18,
+            height: '7%',
+            width: SCREEN_HEIGHT * .43,
+            // marginHorizontal: '10%',
+            marginHorizontal: SCREEN_WIDTH * .11,
+            // optional elevation for Android shadow
+            elevation: 8,
           },
-          tabBarActiveTintColor: COLORS.lightScheme.primary,
+          tabBarActiveTintColor: '#009966',
           tabBarInactiveTintColor: COLORS.lightScheme.onSurface,
           tabBarShowLabel: false,
           tabBarHideOnKeyboard: true,
@@ -34,7 +42,7 @@ const BottomNavigation = () => {
         <Tab.Screen
           name={"Home_Navigator"}
           options={{
-            tabBarIcon: ({ color, size }) => icon.HomeFill(color, 30),
+            tabBarIcon: ({ color, size }) => icon.HomeFill(color, 24),
             headerShown: false,
           }}
           component={HomeNavigation}
@@ -43,7 +51,7 @@ const BottomNavigation = () => {
         {/* <Tab.Screen
           name={"FindAccountScreen"}
           options={{
-            tabBarIcon: ({ color, size }) => icon.Find(color, 30),
+            tabBarIcon: ({ color, size }) => icon.Find(color, 24),
             headerShown: false,
           }}
           component={AccountFindNavigation}
@@ -52,7 +60,7 @@ const BottomNavigation = () => {
         <Tab.Screen
           name={"EndWorkScreen"}
           options={{
-            tabBarIcon: ({ color, size }) => icon.end(color, 30),
+            tabBarIcon: ({ color, size }) => icon.end(color, 24),
             headerShown: false,
           }}
           component={EndWorkScreen}
@@ -62,12 +70,20 @@ const BottomNavigation = () => {
           name="SettingScreens"
           component={SettingsNavigation}
           options={{
-            tabBarIcon: ({ color, size }) => icon.settings(color, 30),
+            tabBarIcon: ({ color, size }) => icon.settings(color, 24),
             headerShown: false,
           }}
         />
+        {/* <Tab.Screen
+          name="SyncScreens"
+          component={SyncScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => icon.loop(color, 24),
+            headerShown: false,
+          }}
+        /> */}
       </Tab.Navigator>
-    </>
+    </View>
   )
 }
 

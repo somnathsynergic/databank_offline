@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native"
-import { useContext, useState, useEffect, useMemo } from "react"
+import { useContext, useState, useEffect, useMemo, useCallback } from "react"
 import axios from "axios"
 import { COLORS, colors } from "../../Resources/colors"
 import CustomHeader from "../../Components/CustomHeader"
@@ -28,7 +28,7 @@ import mainNavigationRoutes from "../../Routes/NavigationRoutes"
 import { AppStore } from "../../Context/AppContext"
 import { StackActions, useFocusEffect } from "@react-navigation/native"
 import CancelButtonComponent from "../../Components/CancelButtonComponent"
-// import razor from "../../Resources/Images/razorpay.webp"
+import { getDBConnection, getAccountByNumber, getLatestTransactionDateByAccount } from "../../Database/db-service"
 import { address } from "../../Routes/addresses"
 import moment from "moment"
 
@@ -48,9 +48,9 @@ const AccountDetails = ({ navigation, route }) => {
     branchCode,
   } = useContext(AppStore)
 
-  const { item } = route.params
-
-  const [lastTnxDate, setLastTnxDate] = useState(() => "")
+  const { item: initialItem } = route.params;
+  const [account, setAccount] = useState(initialItem);
+  const [lastTnxDate, setLastTnxDate] = useState(() => "");
 
   // const radioButtons = useMemo(
   //   () => [
@@ -75,19 +75,19 @@ const AccountDetails = ({ navigation, route }) => {
   const tableData = [
     [
       "Account Type",
-      item?.acc_type == "D"
+      account?.product_code[0] == "D"
         ? "Daily"
-        : item?.acc_type == "R"
-        ? "RD"
-        : item?.acc_type == "L"
-        ? "Loan"
-        : "",
+        : account?.product_code[0] == "R"
+          ? "RD"
+          : account?.product_code[0] == "L"
+            ? "Loan"
+            : "",
     ],
-    ["Account No.", item?.account_number],
-    ["Name", item?.customer_name],
-    ["Mobile No.", item?.mobile_no],
-    // ["Opening date", moment.utc(item?.opening_date).format("DD/MM/YYYY HH:mm")],
-    ["Opening date", new Date(item?.opening_date).toLocaleDateString("en-GB")],
+    ["Account No.", account?.account_number],
+    ["Name", account?.customer_name],
+    ["Mobile No.", account?.mobile_no],
+    // ["Opening date", moment.utc(account?.opening_date).format("DD/MM/YYYY HH:mm")],
+    ["Opening date", new Date(account?.opening_date).toLocaleDateString("en-GB")],
 
     [
       "Previous Transaction Date",
@@ -95,47 +95,45 @@ const AccountDetails = ({ navigation, route }) => {
         ? new Date(lastTnxDate).toLocaleDateString("en-GB")
         : "No available date",
     ],
-    ["Current Balance", item?.current_balance],
-  ]
+    ["Current Balance", account?.current_balance],
+  ];
 
   const getLastTnxDate = async () => {
     const obj = {
       bank_id: bankId,
       branch_code: branchCode,
       agent_code: userId,
-      account_number: item?.account_number,
+      account_number: account?.account_number,
       flag: "D",
     }
 
-    console.log("OOOOOOOOOOOOOOOOOOOOOOOOOOOO", obj)
+    // console.log("OOOOOOOOOOOOOOOOOOOOOOOOOOOO", obj)
 
-    await axios
-      .post(address.LAST_TNX_DATE, obj, {
-        headers: {
-          Accept: "application/json",
-        },
-      })
-      .then(res => {
-        setLastTnxDate(
-          res?.data?.success?.length !== 0
-            ? res?.data?.success?.msg[0]?.last_trns_dt?.toString()
-            : "",
-        )
-
-        // {"status": true, "success": []}
-        console.log(
-          ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",
-          res?.data?.success?.msg[0]?.last_trns_dt,
-        )
-      })
-      .catch(err => {
-        console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", err)
-      })
+    try {
+      const db = await getDBConnection();
+      const latest = await getLatestTransactionDateByAccount(db, account?.account_number);
+      setLastTnxDate(latest);
+    } catch (err) {
+      console.error('Error fetching last transaction date:', err);
+    }
   }
 
-  useEffect(() => {
-    getLastTnxDate()
-  }, [])
+  useFocusEffect(
+    useCallback(() => {
+      // Refresh last transaction date and account data on screen focus
+      const fetchData = async () => {
+        getLastTnxDate();
+        try {
+          const db = await getDBConnection();
+          const fresh = await getAccountByNumber(db, account?.account_number);
+          if (fresh) setAccount(fresh);
+        } catch (e) {
+          console.error('Failed to refresh account data', e);
+        }
+      };
+      fetchData();
+    }, [])
+  );
 
   useEffect(() => {
     getFlagsRequest()
@@ -154,20 +152,16 @@ const AccountDetails = ({ navigation, route }) => {
     }
     // setCollectionMoney(0)
     navigation.navigate(mainNavigationRoutes.accountPreview, {
-      item: item,
+      item: account,
       money: collectionMoney,
     })
   }
 
-  // const handleRazorpayClient = () => {
-  //   console.log("Razorpay client...")
-  // }
-
   const checkDayLock = () => {
     let currentDate = new Date(todayDateFromServer.toISOString().slice(0, 10))
-    console.log("CURRRRR DATEE", currentDate)
+    //console.log("CURRRRR DATEE", currentDate)
     let trans_dt = new Date(transDt.toISOString().slice(0, 10))
-    console.log("MODDDD DATEsssssss", trans_dt)
+    //console.log("MODDDD DATEsssssss", trans_dt)
     let newTrans_dt = trans_dt.setDate(
       trans_dt.getDate() + parseInt(allowCollectionDays),
     )
@@ -188,14 +182,14 @@ const AccountDetails = ({ navigation, route }) => {
 
   const checkHolidayLock = () => {
     let currentDate = new Date(todayDateFromServer.toISOString().slice(0, 10))
-    console.log("CURRRRR DATEE", currentDate)
+    //("CURRRRR DATEE", currentDate)
     let modifiedAtDate = new Date(modifiedAt.toISOString().slice(0, 10))
-    console.log("MODDDD DATE", modifiedAtDate)
+    //console.log("MODDDD DATE", modifiedAtDate)
     let newModifiedDate = new Date()
 
     // let afterAddingHolidayLockDays = modifiedAtDate.getDate() + 1
     newModifiedDate.setDate(modifiedAtDate.getDate() + holidayLock)
-    console.log("HOLIIIIDDDAAAAYYYYY _+++++++>>>", holidayLock)
+    //console.log("HOLIIIIDDDAAAAYYYYY _+++++++>>>", holidayLock)
 
     return newModifiedDate >= currentDate
   }
@@ -203,54 +197,125 @@ const AccountDetails = ({ navigation, route }) => {
   // console.log("CHECKKK HOLIDAAAY LOCKKK fun()", checkHolidayLock())
 
   const checkIsCollectionEnded = () => {
+    console.log(collectionFlag, endFlag)
     if (collectionFlag == "Y" && endFlag == "N") return false
     else if (collectionFlag == "N" && endFlag == "Y") return true
   }
 
-  console.log("CHECKKK COLLL ENDEDDD ========>>>>>", checkIsCollectionEnded())
+  //console.log("CHECKKK COLLL ENDEDDD ========>>>>>", checkIsCollectionEnded())
 
   return (
-    <View>
+    // <View>
+    //   <CustomHeader />
+    //   <View
+    //     style={{
+    //       backgroundColor: COLORS.lightScheme.background,
+    //       height: "100%",
+    //       padding: 10,
+    //     }}>
+    //     <ScrollView keyboardShouldPersistTaps={"handled"}>
+    //       <Text style={styles.info}>Daily Account Info</Text>
+    //       {/* Table Component */}
+    //       <View style={styles.tableConatiner}>
+    //         <Table
+    //           borderStyle={{
+    //             borderWidth: 5,
+    //             borderColor: COLORS.lightScheme.primary,
+    //             fontSize: 16,
+    //           }}
+    //           style={{ backgroundColor: COLORS.lightScheme.onPrimary }}>
+    //           <Rows data={tableData} textStyle={styles.text} />
+    //         </Table>
+    //       </View>
+    //       {/* Input Field */}
+
+    //       {/* <View
+    //         style={{
+    //           // alignSelf: "center",
+    //           marginVertical: 15,
+    //         }}>
+    //         <RadioGroup
+    //           radioButtons={radioButtons}
+    //           onPress={setSelectedId}
+    //           selectedId={selectedId}
+    //           layout="row"
+    //           labelStyle={{
+    //             fontWeight: "800",
+    //             fontSize: 20,
+    //           }}
+    //         />
+    //       </View> */}
+    //       <View style={styles.inputContainer}>
+    //         <InputComponent
+    //           keyboardType={"numeric"}
+    //           placeholder={"Enter Valid Amount"}
+    //           label={"Collection Amount"}
+    //           value={collectionMoney}
+    //           handleChange={money => {
+    //             if (/^\d*\.?\d*$/.test(money)) {
+    //               setCollectionMoney(money)
+    //             }
+    //           }}
+    //           autoFocus={true}
+    //         />
+    //         <View style={styles.buttonContainer}>
+    //           <CancelButtonComponent
+    //             title={"Back"}
+    //             customStyle={{
+    //               marginTop: 10,
+    //               marginRight: 10,
+    //               backgroundColor: "white",
+    //               colors: "red",
+    //               width: "40%",
+    //             }}
+    //             handleOnpress={() => {
+    //               setCollectionMoney(0)
+    //               navigation.goBack()
+    //             }}
+    //           />
+
+    //           <ButtonComponent
+    //             title={"Preview / Save"}
+    //             customStyle={{ marginTop: 10, width: "50%" }}
+    //             handleOnpress={handlePreviewData}
+    //             disabled={!(!checkIsCollectionEnded() && checkDayLock())}
+    //           />
+    //         </View>
+    //       </View>
+    //     </ScrollView>
+    //   </View>
+    // </View>
+    <View style={styles.root}>
       <CustomHeader />
-      <View
-        style={{
-          backgroundColor: COLORS.lightScheme.background,
-          height: "100%",
-          padding: 10,
-        }}>
-        <ScrollView keyboardShouldPersistTaps={"handled"}>
-          <Text style={styles.info}>Daily Account Info</Text>
-          {/* Table Component */}
-          <View style={styles.tableConatiner}>
+
+      <View style={styles.container}>
+        <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <View style={styles.hero}>
+            <View>
+              <Text style={styles.heroSmall}>Account Overview</Text>
+              <Text style={styles.heroTitle}>Daily Account Info</Text>
+              <Text style={styles.heroSub}>Enter amount and preview the collection</Text>
+            </View>
+
+            <View style={styles.heroBadge}>
+              <Text style={styles.heroBadgeText}>Daily</Text>
+            </View>
+          </View>
+
+          <View style={styles.tableCard}>
+            <Text style={styles.sectionTitle}>Account Details</Text>
+
             <Table
-              borderStyle={{
-                borderWidth: 5,
-                borderColor: COLORS.lightScheme.primary,
-                fontSize: 16,
-              }}
-              style={{ backgroundColor: COLORS.lightScheme.onPrimary }}>
-              <Rows data={tableData} textStyle={styles.text} />
+              borderStyle={styles.tableBorder}
+              style={styles.table}
+            >
+              <Rows data={tableData} textStyle={styles.tableText} />
             </Table>
           </View>
-          {/* Input Field */}
 
-          {/* <View
-            style={{
-              // alignSelf: "center",
-              marginVertical: 15,
-            }}>
-            <RadioGroup
-              radioButtons={radioButtons}
-              onPress={setSelectedId}
-              selectedId={selectedId}
-              layout="row"
-              labelStyle={{
-                fontWeight: "800",
-                fontSize: 20,
-              }}
-            />
-          </View> */}
-          <View style={styles.inputContainer}>
+          <View style={styles.formCard}>
+            <Text style={styles.sectionTitle}>Collection Entry</Text>
+
             <InputComponent
               keyboardType={"numeric"}
               placeholder={"Enter Valid Amount"}
@@ -263,16 +328,11 @@ const AccountDetails = ({ navigation, route }) => {
               }}
               autoFocus={true}
             />
+
             <View style={styles.buttonContainer}>
               <CancelButtonComponent
                 title={"Back"}
-                customStyle={{
-                  marginTop: 10,
-                  marginRight: 10,
-                  backgroundColor: "white",
-                  colors: "red",
-                  width: "40%",
-                }}
+                customStyle={styles.backButton}
                 handleOnpress={() => {
                   setCollectionMoney(0)
                   navigation.goBack()
@@ -281,7 +341,7 @@ const AccountDetails = ({ navigation, route }) => {
 
               <ButtonComponent
                 title={"Preview / Save"}
-                customStyle={{ marginTop: 10, width: "50%" }}
+                customStyle={styles.saveButton}
                 handleOnpress={handlePreviewData}
                 disabled={!(!checkIsCollectionEnded() && checkDayLock())}
               />
@@ -295,60 +355,191 @@ const AccountDetails = ({ navigation, route }) => {
 
 export default AccountDetails
 
+// const styles = StyleSheet.create({
+//   // text: {
+//   //   margin: 6,
+//   //   color: COLORS.lightScheme.onBackground,
+//   //   fontWeight: '400',
+//   //   fontSize: 18,
+//   // },
+//   text: {
+//     margin: 6,
+//     color: COLORS.lightScheme.onBackground,
+//     fontWeight: "400",
+//     fontSize: 18,
+//   },
+//   head: {
+//     margin: 6,
+//     color: COLORS.lightScheme.onBackground,
+//     fontWeight: "900",
+//     fontSize: 12,
+//   },
+//   info: {
+//     color: COLORS.lightScheme.onPrimary,
+//     textAlign: "center",
+//     fontSize: 22,
+//     letterSpacing: 5,
+//     backgroundColor: COLORS.lightScheme.primary,
+//     borderRadius: 5,
+//     marginBottom: 5,
+//     paddingVertical: 5,
+//     fontWeight: "600",
+//     borderBottomLeftRadius: 12,
+//     borderBottomRightRadius: 12,
+//   },
+//   inputContainer: {
+//     padding: 20,
+//     marginVertical: 10,
+//     // padding: 10,
+//     backgroundColor: COLORS.lightScheme.onPrimary,
+//     borderRadius: 20,
+//     borderColor: COLORS.lightScheme.primary,
+//     borderWidth: 0.8,
+//     elevation: 10,
+//   },
+//   buttonContainer: {
+//     flexDirection: "row",
+//     justifyContent: "space-evenly",
+//   },
+//   tableConatiner: {
+//     padding: 10,
+//     backgroundColor: COLORS.lightScheme.onPrimary,
+//     borderRadius: 5,
+//   },
+//   // image: {
+//   //   height: 100,
+//   //   width: "100%",
+//   //   alignSelf: "center",
+//   // },
+// })
+
 const styles = StyleSheet.create({
-  // text: {
-  //   margin: 6,
-  //   color: COLORS.lightScheme.onBackground,
-  //   fontWeight: '400',
-  //   fontSize: 18,
-  // },
-  text: {
-    margin: 6,
-    color: COLORS.lightScheme.onBackground,
-    fontWeight: "400",
-    fontSize: 18,
+  root: {
+    flex: 1,
+    backgroundColor: "#F5F9FF",
   },
-  head: {
-    margin: 6,
-    color: COLORS.lightScheme.onBackground,
-    fontWeight: "900",
+  container: {
+    flex: 1,
+    backgroundColor: "#F5F9FF",
+    paddingHorizontal: 12,
+    paddingTop: 10,
+  },
+  hero: {
+    backgroundColor: "#0B1F2A",
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+    marginBottom: 12,
+  },
+  heroSmall: {
     fontSize: 12,
-  },
-  info: {
-    color: COLORS.lightScheme.onPrimary,
-    textAlign: "center",
-    fontSize: 22,
-    letterSpacing: 5,
-    backgroundColor: COLORS.lightScheme.primary,
-    borderRadius: 5,
-    marginBottom: 5,
-    paddingVertical: 5,
+    color: "rgba(255,255,255,0.72)",
     fontWeight: "600",
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
   },
-  inputContainer: {
-    padding: 20,
-    marginVertical: 10,
-    // padding: 10,
-    backgroundColor: COLORS.lightScheme.onPrimary,
+  heroTitle: {
+    marginTop: 4,
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: 0.3,
+  },
+  heroSub: {
+    marginTop: 6,
+    fontSize: 14,
+    color: "#009966",
+    fontWeight: "600",
+  },
+  heroBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "rgba(217,184,92,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(217,184,92,0.35)",
+  },
+  heroBadgeText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#009966",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  tableCard: {
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    borderColor: COLORS.lightScheme.primary,
-    borderWidth: 0.8,
-    elevation: 10,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(217,184,92,0.12)",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#0B1F2A",
+    marginBottom: 12,
+    letterSpacing: 0.2,
+  },
+  tableBorder: {
+    borderWidth: 1,
+    borderColor: "rgba(217,184,92,0.12)",
+  },
+  table: {
+    backgroundColor: "#FFFFFF",
+  },
+  tableText: {
+    margin: 0,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    color: "#334155",
+    fontWeight: "500",
+    fontSize: 15,
+    backgroundColor: "#FFFFFF",
+  },
+  formCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(217,184,92,0.12)",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+    marginBottom: 20,
   },
   buttonContainer: {
     flexDirection: "row",
-    justifyContent: "space-evenly",
+    justifyContent: "space-between",
+    gap: 12,
+    marginTop: 16,
   },
-  tableConatiner: {
-    padding: 10,
-    backgroundColor: COLORS.lightScheme.onPrimary,
-    borderRadius: 5,
+  backButton: {
+    flex: 1,
+    marginTop: 10,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "rgba(0,129,129,0.15)",
+    borderRadius: 14,
   },
-  // image: {
-  //   height: 100,
-  //   width: "100%",
-  //   alignSelf: "center",
-  // },
-})
+  saveButton: {
+    flex: 1,
+    marginTop: 10,
+    borderRadius: 14,
+  },
+});

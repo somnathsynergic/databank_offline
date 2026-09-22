@@ -20,47 +20,46 @@ const ForgotPasscode = ({ navigation }) => {
     setDeviceID(uniqueId)
   }, [])
   return (
-    // <View style={{ flex: 1, backgroundColor: colors.backgroundColor }} >
-    // <View style={styles.logoContainer}>
-    //     <Image
-    //         source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Logo_of_Twitter.svg/512px-Logo_of_Twitter.svg.png?20220821125553" }}
-    //         style={styles.image}
-    //         resizeMode='contain'
-    //     />
-    //     <View>
-    //         {/* Wellcome gretting */}
-    //         <Text style={styles.grettingText}>
-    //             WellCome To {"Demo"}
-    //         </Text>
-    //         {/* manual text */}
-    //         <Text style={styles.manual}>
+    <View style={{ flex: 1, backgroundColor: colors.backgroundColor }} >
+    <View style={styles.logoContainer}>
+        <Image
+            source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Logo_of_Twitter.svg/512px-Logo_of_Twitter.svg.png?20220821125553" }}
+            style={styles.image}
+            resizeMode='contain'
+        />
+        <View>
+            {/* Wellcome gretting */}
+            <Text style={styles.grettingText}>
+                WellCome To {"Demo"}
+            </Text>
+            {/* manual text */}
+            <Text style={styles.manual}>
 
-    //         </Text>
-    //     </View>
-    // </View>
-    //     <View style={styles.mainContainer}>
-    //         <View style={styles.logINcontainer} >
-    //             {/* Title */}
-    //             {
-    //                 !showPassWord && <Text style={styles.title}>
-    //                     Click on the Below Button To Generate new  Passcode
-    //                 </Text>}
-    //             {
-    //                 showPassWord && <Text style={styles.title}>
-    //                     Your new Pin has been successfully generated and sent to your registered email address. Please check your inbox for the email containing your new passcode. If you do not receive the email within a few minutes, please check your spam or junk folder. Thank you for using our services
-    //                 </Text>}
+            </Text>
+        </View>
+    </View>
+        <View style={styles.mainContainer}>
+            <View style={styles.logINcontainer} >
+                {/* Title */}
+                {
+                    !showPassWord && <Text style={styles.title}>
+                        Click on the Below Button To Generate new  Passcode
+                    </Text>}
+                {
+                    showPassWord && <Text style={styles.title}>
+                        Your new Pin has been successfully generated and sent to your registered email address. Please check your inbox for the email containing your new passcode. If you do not receive the email within a few minutes, please check your spam or junk folder. Thank you for using our services
+                    </Text>}
 
-    //             <View style={styles.buttonContainer}>
-    //                 {!showPassWord && <ButtonComponent title={"Generate"} handleOnpress={() => handleChangeShowPassWord()} />}
-    //                 {showPassWord && <ButtonComponent title={"Go Back"} handleOnpress={() => navigation.goBack()} />}
-    //             </View>
+                <View style={styles.buttonContainer}>
+                    {!showPassWord && <ButtonComponent title={"Generate"} handleOnpress={() => handleChangeShowPassWord()} />}
+                    {showPassWord && <ButtonComponent title={"Go Back"} handleOnpress={() => navigation.goBack()} />}
+                </View>
 
-    //         </View>
-    //     </View>
+            </View>
+        </View>
 
-    // </View>
+    </View>
 
-    <></>
   )
 }
 
@@ -69,7 +68,7 @@ export default ForgotPasscode
 // const styles = StyleSheet.create({
 //     logoContainer: {
 //         flex: 2,
-//         backgroundColor: colors.secondaryBackground,
+//         backgroundColor: colors.primary,
 //         borderBottomLeftRadius: 50,
 //         flexDirection: 'row',
 //         justifyContent: 'space-between',

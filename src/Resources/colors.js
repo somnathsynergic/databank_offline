@@ -21,9 +21,10 @@
 
 export const COLORS = {
   lightScheme: {
-    primary: "#006877",
+    // primary: "#006877",
+    primary: "#0B1F2A",
     onPrimary: "#ffffff",
-    primaryContainer: "#a4eeff",
+    primaryContainer: "rgba(217,184,92)",
     onPrimaryContainer: "#001f25",
 
     secondary: "#4b6268",
@@ -41,7 +42,8 @@ export const COLORS = {
     errorContainer: "#ffdad6",
     onErrorContainer: "#410002",
 
-    background: "#fbfcfd",
+    background: "#eef2f5ff",
+    // background: "#f7f8faff",
     onBackground: "#191c1d",
     surface: "#fbfcfd",
     onSurface: "#191c1d",
@@ -57,7 +59,7 @@ export const COLORS = {
     primaryContainer: "#004e5a",
     onPrimaryContainer: "#a4eeff",
 
-    secondary: "#b2cbd1",
+    secondary: "#dadedf",
     onSecondary: "#1c3439",
     secondaryContainer: "#334a50",
     onSecondaryContainer: "#cde7ed",

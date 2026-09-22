@@ -37,6 +37,7 @@ local.properties
 # node.js
 #
 node_modules/
+*.zip
 npm-debug.log
 yarn-error.log
 .env
@@ -65,3 +66,6 @@ yarn-error.log
 
 # testing
 /coverage
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat

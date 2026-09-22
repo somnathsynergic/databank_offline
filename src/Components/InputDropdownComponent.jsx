@@ -78,7 +78,7 @@ const InputDropdownComponent = ({
       <TextInput
         style={styles.input}
         onChangeText={handleChange}
-        value={value}
+        value={value !== undefined && value !== null ? value.toString() : ""}
         placeholder={placeholder}
         placeholderTextColor={COLORS.lightScheme.secondary}
         readOnly={isReadonly}

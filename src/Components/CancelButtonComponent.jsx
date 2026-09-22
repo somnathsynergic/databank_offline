@@ -24,7 +24,7 @@ const CancelButtonComponent = ({
           backgroundColor: disabled
             ? COLORS.darkScheme.secondary
             : COLORS.lightScheme.primary,
-          borderColor: COLORS.lightScheme.primary,
+          borderColor: '#0B1F2A',
           borderWidth: 1.5,
         },
         { ...styles.container, ...customStyle },
@@ -39,16 +39,16 @@ export default CancelButtonComponent
 const styles = StyleSheet.create({
   container: {
     borderRadius: PixelRatio.roundToNearestPixel(30),
-    padding: 10,
+    padding: 8,
     borderColor: COLORS.lightScheme.primary,
     border: 1.5,
     elevation: 5,
     // backgroundColor: colors.secondary
   },
   text: {
-    color: COLORS.lightScheme.primary,
-    fontSize: PixelRatio.roundToNearestPixel(18),
-    fontWeight: "700",
+    color: '#0B1F2A',
+    fontSize: PixelRatio.roundToNearestPixel(15),
+    fontWeight: "500",
     textAlign: "center",
     letterSpacing: 1,
   },

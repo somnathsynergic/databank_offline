@@ -3,11 +3,11 @@ import React from "react"
 import SmoothPinCodeInput from "react-native-smooth-pincode-input"
 import { COLORS, colors } from "../Resources/colors"
 
-const MpinComponent = ({ value, handleChange }) => {
+const MpinComponent = ({ value, onChangeText, placeholder }) => {
   return (
     <View style={{ padding: 10, alignItems: "center" }}>
       <SmoothPinCodeInput
-        placeholder="?"
+        placeholder={placeholder}
         mask={
           <View
             style={{
@@ -16,7 +16,8 @@ const MpinComponent = ({ value, handleChange }) => {
               borderRadius: 25,
               backgroundColor: COLORS.lightScheme.primary,
               borderWidth: 2,
-            }}></View>
+            }}
+          />
         }
         maskDelay={1000}
         password={true}
@@ -27,14 +28,17 @@ const MpinComponent = ({ value, handleChange }) => {
         }}
         cellStyleFocused={null}
         value={value}
-        onTextChange={code => handleChange(code)}
+        onTextChange={code => {
+          console.log('MpinComponent change:', code);
+          onChangeText && onChangeText(code);
+        }}
         onBackspace={() => {
           console.warn("hello")
         }}
       />
     </View>
-  )
-}
+  );
+};
 
 export default MpinComponent
 

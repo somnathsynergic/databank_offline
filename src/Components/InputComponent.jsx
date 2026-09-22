@@ -6,6 +6,7 @@ import {
   PixelRatio,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native"
 import React from "react"
 import { COLORS, colors } from "../Resources/colors"
@@ -21,16 +22,17 @@ const InputComponent = ({
   handlePasswordShow,
   keyboardType = "default",
   autoFocus = true,
+  isLoading = false,
 }) => {
   return (
-    <View>
+    <View style={{ position: "relative" }}>
       {label && <Text style={styles.label}>{label}</Text>}
       <TextInput
         style={styles.input}
         onChangeText={handleChange}
-        value={value}
+        value={value !== undefined && value !== null ? value.toString() : ""}
         placeholder={placeholder}
-        placeholderTextColor={COLORS.lightScheme.primary}
+        placeholderTextColor={'#aaa8a8ff'}
         readOnly={readOnly}
         keyboardType={keyboardType}
         secureTextEntry={textHide}
@@ -47,6 +49,17 @@ const InputComponent = ({
           )}
         </TouchableOpacity>
       )}
+      {isLoading && (
+        <ActivityIndicator
+          size="small"
+          color="#009966"
+          style={{
+            position: "absolute",
+            top: label ? 10 : 15,
+            right: 12,
+          }}
+        />
+      )}
     </View>
   )
 }
@@ -56,14 +69,15 @@ export default InputComponent
 const styles = StyleSheet.create({
   input: {
     width: "100%",
+    // borderWidth: 1,
+    borderColor: "#e9e9e9ff",
+    backgroundColor: '#e9e9e9ff',
     borderWidth: 1,
-    borderColor: COLORS.lightScheme.primary,
-    borderWidth: 1.5,
     borderRadius: PixelRatio.roundToNearestPixel(10),
     paddingHorizontal: 10,
-    paddingVertical: 15,
+    paddingVertical: 12,
     color: COLORS.lightScheme.onSurface,
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "bold",
   },
   label: {
@@ -71,9 +85,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: PixelRatio.roundToNearestPixel(5),
     paddingBottom: PixelRatio.roundToNearestPixel(5),
     fontSize: PixelRatio.roundToNearestPixel(16),
-    color: COLORS.lightScheme.primary,
-    fontWeight: "600",
-    letterSpacing: 2,
+    color: "#0B1F2A",
+    fontWeight: "400",
+    letterSpacing: 1,
   },
   imageContainer: {
     position: "absolute",

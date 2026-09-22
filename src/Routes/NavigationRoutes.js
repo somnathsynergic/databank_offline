@@ -32,6 +32,8 @@ const mainNavigationRoutes = {
   aboutScreen: "AboutScreen",
   lastFiveTnxScreen: "LastFiveTnxScreen",
   dayTotalReportScreen: "DayTotalReportScreen",
+  register: "Register",
+  SyncScreen: "SyncScreen",
 }
 
 export default mainNavigationRoutes

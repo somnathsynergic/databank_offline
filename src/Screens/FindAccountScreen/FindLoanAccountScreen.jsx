@@ -16,72 +16,85 @@ import { REACT_APP_BASE_URL } from "../../Config/config"
 import { address } from "../../Routes/addresses"
 import { AppStore } from "../../Context/AppContext"
 import { useFocusEffect } from "@react-navigation/native"
+import { getDBConnection, saveAccounts, searchOfflineAccounts } from "../../Database/db-service"
 
 const FindLoanAccountScreen = ({ navigation }) => {
   const [searchValue, changeSearchValue] = useState(() => "")
   const [userBankDetails, setUserBankDetails] = useState(() => [])
   const [isLoading, setIsLoading] = useState(false)
 
-  const { userId, bankId, branchCode } = useContext(AppStore)
+  const { userId, bankId, branchCode, isOffline } = useContext(AppStore)
 
-  function handleAccountSearch() {
-    if (!searchValue) {
-      return
-    }
-    fetchBankDetails()
-  }
+  // Debounce handled via useEffect below
 
-  const debounce = func => {
-    let timer
-    return function (...args) {
-      const context = this
-      if (timer) clearTimeout(timer)
-      timer = setTimeout(() => {
-        timer = null
-        func.apply(context, args)
-      }, 2000)
-    }
-  }
+
 
   // useEffect(() => {
   //   handleAccountSearch()
   //   console.log(userBankDetails)
   // }, [searchValue])
 
+  // Debounce search: trigger fetch when user stops typing
   useEffect(() => {
-    debounce(fetchBankDetails)()
-  }, [searchValue])
+    if (!searchValue) {
+      setUserBankDetails([]);
+      setIsLoading(false);
+      return;
+    }
+    const handler = setTimeout(() => {
+      fetchBankDetails();
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchValue]);
 
   const fetchBankDetails = async () => {
     setIsLoading(true)
-    const obj = {
-      bank_id: bankId,
-      branch_code: branchCode,
-      agent_code: userId,
-      account_number: searchValue,
-      flag: "L",
+
+    // Handle offline search
+    // if (isOffline) {
+    // console.log("Searching details locally (Offline)")
+    try {
+      const db = await getDBConnection()
+      const localAccounts = await searchOfflineAccounts(db, searchValue, "L")
+      setUserBankDetails(localAccounts)
+    } catch (err) {
+      console.error("Error searching local DB:", err)
+      setUserBankDetails([])
     }
-    console.log(bankId, branchCode, userId, searchValue)
-    console.log(userBankDetails)
+    setIsLoading(false)
+    return
+    // }
 
-    await axios
-      .post(address.SEARCH_ACCOUNT, obj, {
-        headers: {
-          Accept: "application/json",
-        },
-      })
-      .then(res => {
-        setIsLoading(false)
-        console.log("bank details", res?.data?.success?.msg)
-        setUserBankDetails(res?.data?.success?.msg)
-        setIsLoading(false)
-      })
-      .catch(err => {
-        setIsLoading(false)
+    // const obj = {
+    //   bank_id: bankId,
+    //   branch_code: branchCode,
+    //   agent_code: userId,
+    //   account_number: searchValue,
+    //   flag: "L",
+    // }
+    // // console.log(bankId, branchCode, userId, searchValue)
+    // // console.log(userBankDetails)
 
-        setUserBankDetails([])
-        console.log(err?.response?.data)
-      })
+    // try {
+    //   const res = await axios.post(address.SEARCH_ACCOUNT, obj, {
+    //     headers: { Accept: "application/json" },
+    //   })
+    //   setIsLoading(false)
+    //   const accounts = res?.data?.success?.msg || []
+    //   const filteredAccounts = accounts.filter(acc => acc?.acc_type?.toUpperCase() === "L");
+    //   // console.log("bank details fetched from server", filteredAccounts)
+    //   setUserBankDetails(filteredAccounts)
+
+    //   // Save to local DB for future offline use
+    //   if (filteredAccounts.length > 0) {
+    //     const db = await getDBConnection()
+    //     await saveAccounts(db, filteredAccounts, "L")
+    //   }
+    // } catch (err) {
+    //   setIsLoading(false)
+    //   setUserBankDetails([])
+    //   console.log("error: " + err?.response?.data)
+    // }
   }
 
   useFocusEffect(
@@ -98,25 +111,92 @@ const FindLoanAccountScreen = ({ navigation }) => {
   )
 
   return (
-    <View>
+    // <View>
+    //   <CustomHeader />
+    //   <View style={styles.container}>
+    //     {/* Account Cards */}
+    //     <Text style={styles.title}>Loan</Text>
+    //     {isLoading && (
+    //       <ActivityIndicator
+    //         color={COLORS.lightScheme.primary}
+    //         style={styles.loading}
+    //         size={"large"}
+    //       />
+    //     )}
+    //     <ScrollView
+    //       style={{ maxHeight: "60%" }}
+    //       keyboardShouldPersistTaps="handled">
+    //       {userBankDetails &&
+    //         !isLoading &&
+    //         userBankDetails?.map((props, index) => {
+    //           console.log("========================", props)
+    //           return (
+    //             <SearchCard
+    //               item={props}
+    //               index={index}
+    //               navigation={navigation}
+    //               key={index}
+    //               flag={"L"}
+    //             />
+    //           )
+    //         })}
+    //     </ScrollView>
+    //     {/* Search Component */}
+    //     <View style={styles.searchContainer}>
+
+    //     </View>
+    //   </View>
+    // </View>
+
+    <View style={{ flex: 1, backgroundColor: COLORS.lightScheme.background }}>
       <CustomHeader />
+
       <View style={styles.container}>
-        {/* Account Cards */}
-        <Text style={styles.title}>Loan</Text>
-        {isLoading && (
+        {/* <View style={styles.hero}>
+          <View>
+            <Text style={styles.heroSmall}>Account Search</Text>
+            <Text style={styles.heroTitle}>Loan</Text>
+            <Text style={styles.heroSub}>Browse and manage loan accounts</Text>
+          </View>
+
+          <View style={styles.heroBadge}>
+            <Text style={styles.heroBadgeText}>
+              {userBankDetails?.length || 0} Results
+            </Text>
+          </View>
+        </View> */}
+
+        {/* {isLoading && (
           <ActivityIndicator
             color={COLORS.lightScheme.primary}
             style={styles.loading}
             size={"large"}
           />
-        )}
+        )} */}
+
+        <View style={styles.searchContainer}>
+          <InputComponent
+            // label={"Account No. / Name"}
+            placeholder={"Loan Accounts (Account No. / Name)"}
+            value={searchValue}
+            handleChange={changeSearchValue}
+            autoFocus={false}
+            isLoading={isLoading}
+
+          />
+        </View>
+        <Text style={styles.heroBadgeText}>
+          {userBankDetails?.length || 0} Results
+        </Text>
         <ScrollView
-          style={{ maxHeight: "60%" }}
-          keyboardShouldPersistTaps="handled">
+          style={styles.listArea}
+          contentContainerStyle={styles.listContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           {userBankDetails &&
             !isLoading &&
             userBankDetails?.map((props, index) => {
-              console.log("========================", props)
               return (
                 <SearchCard
                   item={props}
@@ -128,16 +208,6 @@ const FindLoanAccountScreen = ({ navigation }) => {
               )
             })}
         </ScrollView>
-        {/* Search Component */}
-        <View style={styles.searchContainer}>
-          <InputComponent
-            label={"Account No. / Name"}
-            placeholder={"Enter Account No. / Name"}
-            value={searchValue}
-            handleChange={changeSearchValue}
-            autoFocus={false}
-          />
-        </View>
       </View>
     </View>
   )
@@ -145,35 +215,124 @@ const FindLoanAccountScreen = ({ navigation }) => {
 
 export default FindLoanAccountScreen
 
+// const styles = StyleSheet.create({
+//   container: {
+//     backgroundColor: COLORS.lightScheme.background,
+//     height: "100%",
+//     padding: 10,
+//   },
+//   searchContainer: {
+//     position: "absolute",
+//     bottom: 130,
+//     width: "100%",
+//     alignSelf: "center",
+//     borderColor: COLORS.lightScheme.primary,
+//     borderWidth: 2,
+//     backgroundColor: COLORS.lightScheme.onPrimary,
+//     padding: 20,
+//     borderRadius: 10,
+//     elevation: 10,
+//   },
+//   title: {
+//     textAlign: "center",
+//     fontSize: 20,
+//     fontWeight: "900",
+//     color: COLORS.lightScheme.tertiaryContainer,
+//     // alignSelf: 'center',
+//     letterSpacing: 4,
+//     backgroundColor: COLORS.lightScheme.primary,
+//     paddingHorizontal: 15,
+//     paddingVertical: 5,
+//     borderBottomLeftRadius: 12,
+//     borderBottomRightRadius: 12,
+//   },
+// })
+
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.lightScheme.background,
-    height: "100%",
-    padding: 10,
+    flex: 1,
+    backgroundColor: "#eef2f5ff",
+    // paddingHorizontal: 12,
+    // paddingTop: 10,
+  },
+  hero: {
+    backgroundColor: "#0B1F2A",
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+    marginBottom: 12,
+  },
+  heroSmall: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.72)",
+    fontWeight: "600",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  heroTitle: {
+    marginTop: 4,
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: 0.3,
+  },
+  heroSub: {
+    marginTop: 6,
+    fontSize: 14,
+    color: "#009966",
+    fontWeight: "600",
+  },
+  heroBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "rgba(217,184,92,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(217,184,92,0.35)",
+  },
+  heroBadgeText: {
+    fontSize: 11,
+    padding: 2,
+    paddingHorizontal: 15,
+    fontWeight: "800",
+
+    color: "#9fa1a1ff",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+
   },
   searchContainer: {
-    position: "absolute",
-    bottom: 130,
-    width: "100%",
-    alignSelf: "center",
-    borderColor: COLORS.lightScheme.primary,
-    borderWidth: 2,
-    backgroundColor: COLORS.lightScheme.onPrimary,
-    padding: 20,
-    borderRadius: 10,
-    elevation: 10,
+    backgroundColor: "#FFFFFF",
+    // borderRadius: 15,
+
+    padding: 5,
+    borderWidth: 1,
+    borderColor: "rgba(0,129,129,0.12)",
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+    marginBottom: 12,
   },
-  title: {
-    textAlign: "center",
-    fontSize: 20,
-    fontWeight: "900",
-    color: COLORS.lightScheme.tertiaryContainer,
-    // alignSelf: 'center',
-    letterSpacing: 4,
-    backgroundColor: COLORS.lightScheme.primary,
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
+  loading: {
+    marginTop: 10,
+    marginBottom: 8,
   },
-})
+  listArea: {
+    flex: 1,
+    paddingHorizontal: 12
+
+  },
+  listContent: {
+    paddingBottom: 24,
+  },
+});
