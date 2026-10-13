@@ -181,9 +181,9 @@ const RDAccountPreview = ({ navigation, route }) => {
     try {
       const db = await getDBConnection();
       const { pending } = await getSyncCounts(db);
-      if (pending >= 50) {
+      if (pending >= 10000) {
         setLoading(false);
-        alert('Offline sync limit of 50 transactions reached. Please sync before adding more.');
+        alert('Offline sync limit of 10,000 transactions reached. Please sync before adding more.');
         return;
       }
       const receiptNo = new Date().getTime();

@@ -151,7 +151,7 @@ const AccountPreview = ({ navigation, route }) => {
 
       // 50-transaction offline limit check
       const syncCounts = await getSyncCounts(db);
-      if (syncCounts.pending >= 50) {
+      if (syncCounts.pending >= 10000) {
         setLoading(false);
         setAlertInfo({
           visible: true,
